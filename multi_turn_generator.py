@@ -19,7 +19,7 @@ class MultiTurnGenerator:
         turns: int = 4,
         api_key: str | None = None,
         base_url: str = "https://dashscope.aliyuncs.com/compatible-mode/v1",
-        model: str = "qwen-plus",
+        model: str = "qwen-turbo",
     ) -> None:
         self.generator = MedicalToMPromptGenerator(turns=turns)
         self.n_turns = turns
@@ -229,7 +229,7 @@ def main() -> None:
 
     generator = MultiTurnGenerator(
         turns=4,
-        model="qwen-plus",
+        model="qwen-turbo",
         api_key=os.getenv("DASHSCOPE_API_KEY"),
     )
 
