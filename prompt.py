@@ -3,6 +3,7 @@ from pathlib import Path
 from typing import Any
 
 from llm_service import LLM
+from model import qwq_chat
 from reader import Reader
 
 
@@ -132,12 +133,13 @@ class MedicalToMIncrementalGenerator:
         return prompt
 
     def run(self, data: dict) -> dict:
-        llm = LLM()
+        # llm = LLM()
         result: dict = self.phase_1_initialize_structure(data)
         target_gt = result["reward_model"]["ground_truth"]  # 获取终点
 
         # 1. 生成患者开场
-        patient_first_msg = llm.chat(self.phase_2_first_user_turn_prompt(data))
+        # patient_first_msg = llm.chat(self.phase_2_first_user_turn_prompt(data))
+        patient_first_msg = qwq_chat(self.phase_2_first_user_turn_prompt(data))
         result["prompt"].append({"role": "user", "content": patient_first_msg})
 
         # 2. 动态对话循环（设置最大轮数，如 4 轮）
@@ -147,7 +149,8 @@ class MedicalToMIncrementalGenerator:
             doc_prompt = self.phase_3_assistant_step_prompt(
                 result, data["input"], target_gt
             )
-            doc_reply = llm.chat(doc_prompt)
+            # doc_reply = llm.chat(doc_prompt)
+            doc_reply = qwq_chat(doc_prompt)
             result["prompt"].append({"role": "assistant", "content": doc_reply})
 
             # 检查是否已经结案
@@ -160,7 +163,8 @@ class MedicalToMIncrementalGenerator:
 
             # B. 患者端：模拟反馈
             pat_prompt = self.phase_4_user_step_prompt(result, data["input"])
-            pat_reply = llm.chat(pat_prompt)
+            # pat_reply = llm.chat(pat_prompt)
+            pat_reply = qwq_chat(pat_prompt)
             result["prompt"].append({"role": "user", "content": pat_reply})
 
         return result
@@ -174,6 +178,7 @@ def main() -> None:
     result_file = Path("result.json")
     with result_file.open("w", encoding="utf-8") as f:
         json.dump(mp.run(datas[6]), f, ensure_ascii=False, indent=4)
+    print("Done!")
 
 
 if __name__ == "__main__":

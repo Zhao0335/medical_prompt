@@ -1,11 +1,15 @@
 # core/llm_service.py
 
+import logging
 import os
 
 from dotenv import load_dotenv
 from openai import OpenAI
 
 load_dotenv()
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 
 class LLM:
@@ -27,6 +31,7 @@ class LLM:
         message: list = [
             {"role": "user", "content": self.prompt},
         ]
+        logger.info(f"已发送对话到 API \n Prompt: {self.prompt}")
         completion = self.client.chat.completions.create(
             model=self.model,
             messages=message,
@@ -36,7 +41,6 @@ class LLM:
 
 
 def main() -> None:
-
     llm = LLM()
 
 

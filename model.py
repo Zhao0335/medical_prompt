@@ -1,24 +1,23 @@
+import logging
 from pathlib import Path
 
 from ollama import ChatResponse, chat
 
-from prompt import MedicalToMPromptGenerator
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 file_path = Path("ehr_bench_decision_making.jsonl")
-mkp = MedicalToMPromptGenerator()
-mkp.read_datas(file_path)
-prompts: list[str] = mkp.run()
-
-prompt = prompts[0]
 
 
-response: ChatResponse = chat(
-    model="qwen2.5:14b",
-    messages=[
-        {
-            "role": "user",
-            "content": prompt,
-        },
-    ],
-)
-print(response.message.content)
+def qwq_chat(prompt: str) -> str:
+    logger.info(f"已发送对话到 API \n Prompt: {prompt}")
+    response: ChatResponse = chat(
+        model="qwen2.5:14b",
+        messages=[
+            {
+                "role": "user",
+                "content": prompt,
+            },
+        ],
+    )
+    return str(response.message.content)
