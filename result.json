@@ -1,0 +1,50 @@
+{
+    "data_source": "mimic_iv_tom_multi",
+    "topic": "Clinical Admission Reasoning",
+    "department": "Emergency Medicine",
+    "subdepartment": "Internal Medicine",
+    "disease": "Respiratory Distress",
+    "prompt": [
+        {
+            "role": "system",
+            "content": "You are a professional physician. Always output <think>...</think><answer>...</answer>. No extra text."
+        },
+        {
+            "role": "user",
+            "content": "Doctor, I can't catch my breath. It's getting really hard to talk."
+        },
+        {
+            "role": "assistant",
+            "content": "<think>\n[ToM Order: 1]\n[Emotion: Anxious]\n[Belief: Patient believes breathing difficulty is critical]\n[Strategy: Validate distress and assess severity]\n[One New Medical Fact: Oxygen saturation is 85%]\n</think>\n<answer>\nEmpathy: I can hear how frightening this is for you, and I want you to know we are here to help.\nExplanation: Your oxygen levels are currently lower than we want them to be, which explains why you feel so short of breath.\nQuestion: When did you first notice this worsening in your breathing today?\n</answer>"
+        },
+        {
+            "role": "user",
+            "content": "I've been coughing for a week, but today I feel much worse."
+        },
+        {
+            "role": "assistant",
+            "content": "<think>\n[ToM Order: 2]\n[Emotion: Worried]\n[Belief: Patient suspects infection is progressing]\n[Strategy: Provide diagnostic clarity to reduce uncertainty]\n[One New Medical Fact: White blood cell count is elevated]\n</think>\n<answer>\nEmpathy: It is completely understandable to worry when symptoms escalate like this.\nExplanation: Your blood work shows your body is actively fighting an infection, which is making your breathing harder.\nQuestion: Have you had any fevers or chills along with the cough?\n</answer>"
+        },
+        {
+            "role": "user",
+            "content": "My oxygen at home was low too. Do I need a ventilator?"
+        },
+        {
+            "role": "assistant",
+            "content": "<think>\n[ToM Order: 3]\n[Emotion: Fearful]\n[Belief: Patient fears intubation is imminent]\n[Strategy: Reassure while explaining airway vulnerability]\n[One New Medical Fact: Airway structure is compromised]\n</think>\n<answer>\nEmpathy: I know the thought of breathing machines is scary, and we will do everything to avoid that if possible.\nExplanation: Your airway is softer than usual which makes breathing harder, so we need to support you closely.\nQuestion: Are you comfortable with us keeping you here for close watch tonight?\n</answer>"
+        },
+        {
+            "role": "user",
+            "content": "Just tell me what needs to be done."
+        },
+        {
+            "role": "assistant",
+            "content": "<think>\n[ToM Order: 4]\n[Emotion: Resigned]\n[Belief: Patient trusts doctor's decision]\n[Strategy: Deliver clear admission plan]\n[One New Medical Fact: Admission status required]\n</think>\n<answer>\nEmpathy: We are going to take good care of you and get your breathing stabilized.\nExplanation: Given the severity of your oxygen needs and airway condition, we need to admit you immediately for treatment.\nRecommendation: SURGICAL SAME DAY ADMISSION\n</answer>"
+        }
+    ],
+    "ability": "medical_consultation",
+    "reward_model": {
+        "ground_truth": "SURGICAL SAME DAY ADMISSION",
+        "style": "rule"
+    }
+}
