@@ -38,159 +38,84 @@ class MultiTurnGenerator:
         return str(completion.choices[0].message.content)
 
     def _extract_json_from_response(self, response: str) -> Any:
-        text = self._preprocess_response(response)
-        if not text.strip():
+        text = response.strip()
+        if not text:
             raise ValueError("Empty response from LLM")
 
-        strategies = [
-            ("array", self._extract_first_array),
-            ("object", self._extract_first_object),
-            ("direct", self._direct_parse),
-            ("repair", self._extract_with_repair),
-        ]
-        for name, strategy in strategies:
-            result = strategy(text)
+        for attempt in ["_extract_first_object", "_extract_first_array", "_direct_parse"]:
+            result = getattr(self, attempt)(text)
             if result is not None:
                 return result
 
-        print(f"  [DEBUG] Could not parse JSON. Text preview:\n    {text[:300]}...")
         raise ValueError("Failed to parse JSON from LLM response")
-
-    @staticmethod
-    def _preprocess_response(response: str) -> str:
-        text = response.strip()
-        text = re.sub(r"```json\s*", "", text)
-        text = re.sub(r"```\s*$", "", text)
-        text = text.strip()
-        return text
-
-    def _extract_first_array(self, text: str) -> Any:
-        start = text.find("[")
-        if start == -1:
-            return None
-        end = self._find_matching_bracket(text, start, "[", "]")
-        if end == -1:
-            return None
-        try:
-            return json.loads(text[start : end + 1])
-        except json.JSONDecodeError:
-            return None
 
     def _extract_first_object(self, text: str) -> Any:
         start = text.find("{")
         if start == -1:
             return None
-        end = self._find_matching_bracket(text, start, "{", "}")
-        if end == -1:
-            return None
-        try:
-            return json.loads(text[start : end + 1])
-        except json.JSONDecodeError:
-            return None
-
-    @staticmethod
-    def _find_matching_bracket(text: str, start: int, open_ch: str, close_ch: str) -> int:
         depth = 0
         in_string = False
-        i = start
-        while i < len(text):
+        escape_next = False
+        for i in range(start, len(text)):
             ch = text[i]
+            if escape_next:
+                escape_next = False
+                continue
+            if ch == "\\":
+                escape_next = True
+                continue
+            if ch == '"' and not escape_next:
+                in_string = not in_string
+                continue
             if in_string:
-                if ch == "\\" and i + 1 < len(text):
-                    i += 2
-                    continue
-                if ch == '"':
-                    in_string = False
-                i += 1
                 continue
-            if ch == '"':
-                in_string = True
-                i += 1
-                continue
-            if ch == open_ch:
+            if ch == "{":
                 depth += 1
-            elif ch == close_ch:
+            elif ch == "}":
                 depth -= 1
                 if depth == 0:
-                    return i
-            i += 1
-        return -1
+                    try:
+                        return json.loads(text[start : i + 1])
+                    except json.JSONDecodeError:
+                        return None
+        return None
 
-    @staticmethod
-    def _direct_parse(text: str) -> Any:
+    def _extract_first_array(self, text: str) -> Any:
+        start = text.find("[")
+        if start == -1:
+            return None
+        depth = 0
+        in_string = False
+        escape_next = False
+        for i in range(start, len(text)):
+            ch = text[i]
+            if escape_next:
+                escape_next = False
+                continue
+            if ch == "\\":
+                escape_next = True
+                continue
+            if ch == '"' and not escape_next:
+                in_string = not in_string
+                continue
+            if in_string:
+                continue
+            if ch == "[":
+                depth += 1
+            elif ch == "]":
+                depth -= 1
+                if depth == 0:
+                    try:
+                        return json.loads(text[start : i + 1])
+                    except json.JSONDecodeError:
+                        return None
+        return None
+
+    def _direct_parse(self, text: str) -> Any:
         try:
             return json.loads(text)
         except json.JSONDecodeError:
             return None
-
-    def _extract_with_repair(self, text: str) -> Any:
-        start = text.find("[")
-        if start != -1:
-            end = self._find_matching_bracket(text, start, "[", "]")
-            if end != -1:
-                repaired = self._repair_json_string(text[start : end + 1])
-                try:
-                    return json.loads(repaired)
-                except json.JSONDecodeError:
-                    pass
-        start = text.find("{")
-        if start != -1:
-            end = self._find_matching_bracket(text, start, "{", "}")
-            if end != -1:
-                repaired = self._repair_json_string(text[start : end + 1])
-                try:
-                    return json.loads(repaired)
-                except json.JSONDecodeError:
-                    pass
-        return None
-
-    @staticmethod
-    def _repair_json_string(s: str) -> str:
-        result = []
-        i = 0
-        in_string = False
-        while i < len(s):
-            ch = s[i]
-            if in_string:
-                if ch == "\\" and i + 1 < len(s):
-                    next_ch = s[i + 1]
-                    if next_ch in '"\\nrtbf/':
-                        result.append(ch)
-                        result.append(next_ch)
-                        i += 2
-                        continue
-                    elif next_ch == "n":
-                        result.append(ch)
-                        result.append(next_ch)
-                        i += 2
-                        continue
-                    else:
-                        result.append(ch)
-                        result.append(next_ch)
-                        i += 2
-                        continue
-                if ch == '"':
-                    in_string = False
-                elif ch == "\n":
-                    result.append("\\n")
-                    i += 1
-                    continue
-                elif ch == "\r":
-                    result.append("\\r")
-                    i += 1
-                    continue
-                elif ch == "\t":
-                    result.append("\\t")
-                    i += 1
-                    continue
-                result.append(ch)
-                i += 1
-            else:
-                if ch == '"':
-                    in_string = True
-                result.append(ch)
-                i += 1
-        return "".join(result)
 
     def generate_single_sample(self, sample_data: dict[str, Any]) -> dict[str, Any]:
         medical_input = MedicalToMPromptGenerator._safe_str(sample_data.get("input", ""))
