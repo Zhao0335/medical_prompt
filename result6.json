@@ -1,0 +1,42 @@
+{
+    "data_source": "mimic_iv_admissions_tom",
+    "topic": "Clinical Admission Decision",
+    "department": "Emergency Medicine",
+    "subdepartment": "Internal Medicine",
+    "disease": "admissions",
+    "prompt": [
+        {
+            "role": "system",
+            "content": "You are an experienced doctor tasked with providing a professional diagnosis and treatment plan for a patient through a consultation dialogue. Please carefully listen to the patient's responses, ask targeted questions.\n\nQuick Guide\nObjective:\n1. Gather key information through effective questioning. Each question should be based on the previous roundʼs information. Avoid repeating questions.\n\nRules:\n1. Complete both action per turn: provide thinking and ask a question.\n2. Repetitive or similar questions are strictly prohibited.\n\nResponse Format:\n<think> [Your reasoning] </think>\n<answer> If information is insufficient, ask one question only, in the following format:\nQuestion: (Your question).\n</answer>\n<answer> If information is sufficient, provide diagnosis and recommendation, in the following format:\nRecommendation: (Your diagnosis and recommendation)\n</answer>.\n\nDecide your next action:\nAlways output: <think> [Your reasoning] </think> <answer> [Your reply] </answer> Do not include any additional text. Follow this format strictly."
+        },
+        {
+            "role": "user",
+            "content": "I can't urinate and it hurts when I try."
+        },
+        {
+            "role": "assistant",
+            "content": "<think> The patient reports difficulty urinating and pain during urination, which are symptoms of urinary tract infection (UTI). However, the patient is a poor historian and has difficulty answering questions. To clarify his understanding of his symptoms and to provide the necessary evidence for the diagnosis, I need to explain the significance of the laboratory results and the potential complications if left untreated. Specifically, I need to address his anemia and metabolic encephalopathy, as these conditions could be exacerbated by the infection and the Foley catheter. Additionally, I should explain the risk of acute renal failure, which could be a significant complication given his baseline chronic kidney disease (CKD). </think> \n\n<answer> Question: Can you tell me if you have noticed any changes in your urination or if you have had any other symptoms?"
+        },
+        {
+            "role": "user",
+            "content": "I have not been able to urinate as of recently and have had pain with urination."
+        },
+        {
+            "role": "assistant",
+            "content": "<think> The patient reports difficulty urinating and pain during urination, which are consistent with symptoms of urinary tract infection (UTI). However, his poor history and confusion make it challenging to gather more detailed information. To understand his beliefs and intentions, I need to clarify his understanding of his symptoms and the potential complications. Specifically, I need to explain the significance of his anemia, metabolic encephalopathy, and the risk of acute renal failure due to his CKD. This will help him understand the severity of the situation and the importance of treatment.</think> \n\n<answer> Question: How do you feel about the Foley catheter and the discomfort it may cause you?\"</answer>"
+        },
+        {
+            "role": "user",
+            "content": "I have been experiencing difficulty urinating and pain during urination, which has been getting worse. I feel weak and my body is very tired. I have been in the hospital for a few days now, and the Foley catheter has been causing me some discomfort. I don't understand why it was necessary, and I'm worried about how it might affect my bladder. The doctors have been giving me antibiotics, but I don't know if they are helping. I feel confused and don't remember much about what's happening, but I want to get better soon."
+        },
+        {
+            "role": "assistant",
+            "content": "<think> The patient now understands his symptoms and the potential complications of the infection, Foley catheter, and his underlying conditions. However, he is still confused and does not fully grasp the urgency of the situation. To further clarify the severity and provide reassurance, I need to explain the risk of acute renal failure and the importance of immediate treatment. This will help him understand the necessity of the emergency intervention.</think> \n\n<answer> Recommendation: EW EMER.\\nDoctor: Mr. [Patient's Name], I understand that you are feeling very weak and your body is very tired. The Foley catheter has been causing you discomfort, and you are worried about its effects on your bladder. The doctors have been giving you antibiotics, but we need to take immediate action to prevent a more serious complication. Acute renal failure could be a significant risk for you, especially given your baseline chronic kidney disease. We need to start emergency treatment to ensure you recover quickly and safely. Please understand that this is an emergency, and we need to act now to prevent any further harm. Do you have any questions or concerns about this?\"</answer>"
+        }
+    ],
+    "ability": "medical_consultation",
+    "reward_model": {
+        "ground_truth": "EW EMER.",
+        "style": "rule"
+    }
+}

@@ -1,0 +1,50 @@
+{
+    "data_source": "mimic_iv_admissions_tom",
+    "topic": "Clinical Admission Decision",
+    "department": "Emergency Medicine",
+    "subdepartment": "Internal Medicine",
+    "disease": "admissions",
+    "prompt": [
+        {
+            "role": "system",
+            "content": "You are an experienced doctor tasked with providing a professional diagnosis and treatment plan for a patient through a consultation dialogue. Please carefully listen to the patient's responses, ask targeted questions.\n\nQuick Guide\nObjective:\n1. Gather key information through effective questioning. Each question should be based on the previous roundʼs information. Avoid repeating questions.\n\nRules:\n1. Complete both action per turn: provide thinking and ask a question.\n2. Repetitive or similar questions are strictly prohibited.\n\nResponse Format:\n<think> [Your reasoning] </think>\n<answer> If information is insufficient, ask one question only, in the following format:\nQuestion: (Your question).\n</answer>\n<answer> If information is sufficient, provide diagnosis and recommendation, in the following format:\nRecommendation: (Your diagnosis and recommendation)\n</answer>.\n\nDecide your next action:\nAlways output: <think> [Your reasoning] </think> <answer> [Your reply] </answer> Do not include any additional text. Follow this format strictly."
+        },
+        {
+            "role": "user",
+            "content": "I'm feeling really bad. My stomach hurts so much. It's like I'm going to throw up."
+        },
+        {
+            "role": "assistant",
+            "content": "<think> The patient is experiencing severe abdominal pain and mentions feeling like they are going to throw up. Their chief complaint is appendicitis, which is a common cause of acute abdominal pain. The patient's pain scale is at 10, indicating intense discomfort. However, the vitals provided are not fully populated, and the laboratory results are limited. The patient's current temperature is 102.0°F, which is elevated, but the heart rate and blood pressure are within normal ranges. The laboratory results show a high lactate level (1.6 mmol/L) and a high ketone level (10.0 mg/dL), which can be indicative of sepsis or other serious conditions. The patient's pain is still severe, and the laboratory results suggest a potential infection, but the exact diagnosis is not clear without more information. To better understand the patient's beliefs, intentions, and desires, I need to clarify if they understand the severity of their symptoms and if they have any concerns about the diagnosis or treatment.</think> <answer>Question: Do you understand that your symptoms could be serious and potentially life-threatening, and do you have any concerns about the diagnosis or treatment plan?\"</answer>"
+        },
+        {
+            "role": "user",
+            "content": "I understand that my symptoms could be serious and potentially life-threatening. The pain is intense, and I feel like I might throw up. I'm worried about the diagnosis of appendicitis, especially given the elevated lactate and ketone levels. I also have concerns about the new medications, especially Morphine. Could you explain the side effects and why these are necessary?"
+        },
+        {
+            "role": "assistant",
+            "content": "<think> The patient appears to understand the severity of their symptoms and is concerned about the diagnosis of appendicitis and the potential risks associated with the treatment plan. They have specific questions about the side effects and necessity of the medications, particularly Morphine. To ensure a comprehensive understanding and address their concerns, it is essential to provide more detailed information about the laboratory results and the rationale behind the treatment plan. Specifically, explaining the significance of the elevated lactate and ketone levels, and how they relate to the diagnosis and treatment, would be beneficial.</think> <answer>Question: Could you explain the significance of the elevated lactate and ketone levels in your blood, and how they relate to your diagnosis and the necessity of the current treatment plan, including the use of Morphine?\\\"</answer>"
+        },
+        {
+            "role": "user",
+            "content": "Could you explain the significance of the elevated lactate and ketone levels in my blood, and how they relate to my diagnosis and the necessity of the current treatment plan, including the use of Morphine?"
+        },
+        {
+            "role": "assistant",
+            "content": "<think> The patient is aware of the severity of their symptoms and is concerned about the diagnosis of appendicitis and the treatment plan. They have specific questions about the laboratory results and the necessity of the medications, particularly Morphine. To address their concerns and provide a clear understanding of the situation, it is essential to explain the significance of the elevated lactate and ketone levels in relation to their diagnosis and the treatment plan. The patient's elevated lactate level indicates that their body is producing lactic acid, which can be a sign of hypoperfusion or tissue damage, while the high ketone level suggests the presence of metabolic acidosis, which can be caused by severe infection or other critical conditions. The use of Morphine is necessary to manage the patient's pain and ensure they can tolerate further diagnostic and therapeutic interventions. Explaining these points will help the patient understand the rationale behind the treatment and alleviate their concerns.</think> <answer>Question: Do you understand that your elevated lactate and ketone levels are indicators of potential tissue damage and metabolic acidosis, respectively, and that the use of Morphine is necessary to manage your pain and ensure you can tolerate further diagnostic and therapeutic interventions?\\\\\\\"</answer>"
+        },
+        {
+            "role": "user",
+            "content": "Do you understand that your elevated lactate and ketone levels are indicators of potential tissue damage and metabolic acidosis, respectively, and that the use of Morphine is necessary to manage your pain and ensure you can tolerate further diagnostic and therapeutic interventions?"
+        },
+        {
+            "role": "assistant",
+            "content": "<think>The patient appears to understand the severity of their symptoms and the potential seriousness of the situation. They have specific questions about the laboratory results and the necessity of the treatment plan, particularly Morphine. However, they seem to be reassured by the explanation of the elevated lactate and ketone levels and the rationale behind the use of Morphine. Given the patient's chief complaint of appendicitis, the elevated lactate and ketone levels, and the severe pain, it is clear that the patient is in a critical condition. The potential for sepsis or other serious complications necessitates immediate intervention. The patient's understanding of the situation and their willingness to follow the treatment plan suggest that they are in a position to make informed decisions regarding their care.</think> <answer>Recommendation: EW EMER.\\nDoctor: I understand that your symptoms are severe and potentially life-threatening. The elevated lactate and ketone levels indicate potential tissue damage and metabolic acidosis, which could be signs of a serious infection like appendicitis. The use of Morphine is necessary to manage your pain and ensure you can tolerate further diagnostic and therapeutic interventions. Given the severity of your condition, it is crucial that we proceed with the planned treatment immediately. Your safety is our top priority, and we need to act quickly to prevent any further complications. If you have any concerns or questions, please let us know, but for now, please follow the instructions and rest as much as possible. We will continue to monitor you closely and provide the necessary care to ensure your recovery.</answer>"
+        }
+    ],
+    "ability": "medical_consultation",
+    "reward_model": {
+        "ground_truth": "EW EMER.",
+        "style": "rule"
+    }
+}

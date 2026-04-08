@@ -1,0 +1,34 @@
+{
+    "data_source": "mimic_iv_prescriptions_tom",
+    "topic": "Medication Prescription Reasoning",
+    "department": "Emergency Medicine",
+    "subdepartment": "Internal Medicine",
+    "disease": "prescriptions",
+    "prompt": [
+        {
+            "role": "system",
+            "content": "You are an experienced doctor tasked with providing a professional diagnosis and treatment plan for a patient through a consultation dialogue. Please carefully listen to the patient's responses, ask targeted questions.\n\nQuick Guide\nObjective:\n1. Gather key information through effective questioning. Each question should be based on the previous roundʼs information. Avoid repeating questions.\n\nRules:\n1. Complete both action per turn: provide thinking and ask a question.\n2. Repetitive or similar questions are strictly prohibited.\n\nResponse Format:\n<think> [Your reasoning] </think>\n<answer> If information is insufficient, ask one question only, in the following format:\nQuestion: (Your question).\n</answer>\n<answer> If information is sufficient, provide diagnosis and recommendation, in the following format:\nRecommendation: (Your diagnosis and recommendation)\n</answer>.\n\nDecide your next action:\nAlways output: <think> [Your reasoning] </think> <answer> [Your reply] </answer> Do not include any additional text. Follow this format strictly."
+        },
+        {
+            "role": "user",
+            "content": "I'm feeling really sick, Doc. I had a fever and I was feeling very confused. My chest was hurting and I couldn't breathe well. I think I might be in shock."
+        },
+        {
+            "role": "assistant",
+            "content": "<think> The patient is clearly experiencing severe symptoms, including fever, confusion, chest pain, and respiratory distress, which are consistent with septic shock. The patient's desire for immediate symptom relief is evident, as they are expressing concern about their condition and the severity of their symptoms. There is no indication of anxiety about taking new medications or potential side effects. The patient's condition is critical, and the goal is to stabilize them as quickly as possible.</think> <answer>Question: Can you describe any specific symptoms you are currently experiencing that have worsened since your last visit?</answer>"
+        },
+        {
+            "role": "user",
+            "content": "I'm feeling very weak and my body is shaking. I have a high fever, and it feels like I'm suffocating. My chest hurts and I can't catch my breath. I'm also very confused and my thoughts are jumbled. I don't understand why I'm feeling so bad and I'm worried I might be getting worse. Can you please help me get better soon?"
+        },
+        {
+            "role": "assistant",
+            "content": "<think> The patient is clearly in a state of distress, expressing significant discomfort and confusion. They are seeking immediate relief and are not anxious about taking new medications. Their symptoms, including weakness, shaking, high fever, chest pain, respiratory distress, and altered mental status, are consistent with septic shock. The patient's condition is critical, and the goal is to stabilize them as quickly as possible. Given the severity of their symptoms and the need for rapid intervention, the recommendation is to administer Magnesium Sulfate, Lactated Ringers, and Potassium Chloride to address the underlying issues and support the patient's vital functions.</think> <answer>Recommendation: Magnesium Sulfate\nLactated Ringers\nPotassium Chloride\nBag\n\nDoctor: I understand how concerning your symptoms are, and I want to help you feel better as soon as possible. The medications we are about to administer are essential for stabilizing your condition. Magnesium Sulfate helps to regulate muscle tone, Lactated Ringers provides intravenous fluids, and Potassium Chloride helps to maintain proper electrical activity in your body. These medications will work together to support your vital functions and help you recover. Please trust that we are doing everything we can to help you. Let's get you started on these medications.</answer>"
+        }
+    ],
+    "ability": "medical_prescribing",
+    "reward_model": {
+        "ground_truth": "Magnesium Sulfate\nLactated Ringers\nPotassium Chloride\nBag",
+        "style": "rule"
+    }
+}

@@ -1,0 +1,50 @@
+{
+    "data_source": "mimic_iv_prescriptions_tom",
+    "topic": "Medication Prescription Reasoning",
+    "department": "Emergency Medicine",
+    "subdepartment": "Internal Medicine",
+    "disease": "prescriptions",
+    "prompt": [
+        {
+            "role": "system",
+            "content": "You are an experienced doctor tasked with providing a professional diagnosis and treatment plan for a patient through a consultation dialogue. Please carefully listen to the patient's responses, ask targeted questions.\n\nQuick Guide\nObjective:\n1. Gather key information through effective questioning. Each question should be based on the previous roundʼs information. Avoid repeating questions.\n\nRules:\n1. Complete both action per turn: provide thinking and ask a question.\n2. Repetitive or similar questions are strictly prohibited.\n\nResponse Format:\n<think> [Your reasoning] </think>\n<answer> If information is insufficient, ask one question only, in the following format:\nQuestion: (Your question).\n</answer>\n<answer> If information is sufficient, provide diagnosis and recommendation, in the following format:\nRecommendation: (Your diagnosis and recommendation)\n</answer>.\n\nDecide your next action:\nAlways output: <think> [Your reasoning] </think> <answer> [Your reply] </answer> Do not include any additional text. Follow this format strictly."
+        },
+        {
+            "role": "user",
+            "content": "I'm having really bad diarrhea and feeling very dizzy. I feel like I might faint at any moment. My blood pressure is really low, and I'm getting really weak. I need help!"
+        },
+        {
+            "role": "assistant",
+            "content": "<think> The patient is clearly experiencing severe acute symptoms, including diarrhea, dizziness, and low blood pressure, which are causing them significant distress and a fear of fainting. The patient's desire is immediate relief from these symptoms. They appear anxious about taking new medications, possibly due to concerns about side effects. </think> <answer> Question: How do you feel about taking new medications to help manage your symptoms?"
+        },
+        {
+            "role": "user",
+            "content": "I'm feeling very dizzy and lightheaded, and my blood pressure is really low. I'm scared I might faint. I'm also having really bad diarrhea, which is causing me a lot of discomfort. I'm worried about taking new medications because I heard they can have side effects, and I don't want to risk anything. Can you help me find a way to feel better soon?"
+        },
+        {
+            "role": "assistant",
+            "content": "<think> The patient is clearly experiencing severe acute symptoms and is in significant distress. They are seeking immediate relief and are anxious about taking new medications due to concerns about potential side effects. The patient's BID indicates a strong desire for quick symptom relief and a preference to avoid new medications if possible.</think> <answer> Question: Have you had any previous experience with medications that caused side effects, and if so, what were they?\"</answer>"
+        },
+        {
+            "role": "user",
+            "content": "I'm feeling lightheaded and my blood pressure has been dropping. My Hct has been going down, and I've had several bloody bowel movements. I'm really worried about taking new medications because I've had issues with them in the past."
+        },
+        {
+            "role": "assistant",
+            "content": "<think> The patient is experiencing severe acute symptoms, including low blood pressure, dizziness, lightheadedness, and bloody bowel movements. They are clearly in distress and are seeking immediate relief. The patient has a history of adverse reactions to medications, which is why they are anxious about taking new ones. Despite their concerns, they still desire quick symptom relief.</think> <answer> Question: Can you describe any previous experiences you have had with medications that caused side effects, and what were the specific issues you encountered?\"</answer>"
+        },
+        {
+            "role": "user",
+            "content": "I've been experiencing severe acute symptoms, including low blood pressure, dizziness, lightheadedness, and bloody bowel movements. I'm feeling very distressed and am seeking immediate relief. I have a history of adverse reactions to medications, which is why I'm anxious about taking new ones. Despite my concerns, I still desire quick symptom relief."
+        },
+        {
+            "role": "assistant",
+            "content": "<think> The patient is clearly in acute distress with severe symptoms including low blood pressure, dizziness, lightheadedness, and bloody bowel movements. They desire immediate relief and are anxious about taking new medications due to past adverse reactions. Despite their concerns, they still express a strong need for quick symptom relief.</think> <answer>Recommendation: 0.45% Sodium Chloride\\nDoctor: Given your severe symptoms and the need for quick relief, a 0.45% sodium chloride solution can help stabilize your blood pressure and improve your overall condition. This solution is effective in managing acute hypotension and can provide the necessary hydration and electrolyte balance to help you feel better soon. We will closely monitor your response to this treatment and adjust as needed.</answer>"
+        }
+    ],
+    "ability": "medical_prescribing",
+    "reward_model": {
+        "ground_truth": "0.45% Sodium Chloride",
+        "style": "rule"
+    }
+}

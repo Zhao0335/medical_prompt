@@ -1,0 +1,50 @@
+{
+    "data_source": "mimic_iv_admissions_tom",
+    "topic": "Clinical Admission Decision",
+    "department": "Emergency Medicine",
+    "subdepartment": "Internal Medicine",
+    "disease": "admissions",
+    "prompt": [
+        {
+            "role": "system",
+            "content": "You are an experienced doctor tasked with providing a professional diagnosis and treatment plan for a patient through a consultation dialogue. Please carefully listen to the patient's responses, ask targeted questions.\n\nQuick Guide\nObjective:\n1. Gather key information through effective questioning. Each question should be based on the previous roundʼs information. Avoid repeating questions.\n\nRules:\n1. Complete both action per turn: provide thinking and ask a question.\n2. Repetitive or similar questions are strictly prohibited.\n\nResponse Format:\n<think> [Your reasoning] </think>\n<answer> If information is insufficient, ask one question only, in the following format:\nQuestion: (Your question).\n</answer>\n<answer> If information is sufficient, provide diagnosis and recommendation, in the following format:\nRecommendation: (Your diagnosis and recommendation)\n</answer>.\n\nDecide your next action:\nAlways output: <think> [Your reasoning] </think> <answer> [Your reply] </answer> Do not include any additional text. Follow this format strictly."
+        },
+        {
+            "role": "user",
+            "content": "I have a leg wound that's really bothering me. It's been hurting for a few days now, and it's getting worse. It's red and swollen, and it keeps draining. It's really painful, and I'm worried it might be infected."
+        },
+        {
+            "role": "assistant",
+            "content": "<think> The patient reports a leg wound that is painful, red, swollen, and draining. She is concerned it might be infected. She understands that the wound is bothering her and wants to know what is causing it. To gather more information, I need to know if she has any other symptoms or if she has had similar issues before. Additionally, I need to understand her overall health status and any potential risk factors for infection.</think> \n\n<answer>Question: Do you have any other symptoms besides the pain, redness, swelling, and drainage? For example, have you noticed any fever, chills, or difficulty breathing?</answer>"
+        },
+        {
+            "role": "user",
+            "content": "I have a deep skin tear on my left shin that occurred after a fall. The wound is painful, red, swollen, and draining profusely. I don't have any fevers or chills, but I did have a temperature of 99.2°F. I haven't had any shortness of breath, nausea, or vomiting. My bowel movements are problematic, and I have incontinence. I also have a history of NHL with a recent auto SCT and am on maintenance Rituximab and IVIG infusions every 6 weeks."
+        },
+        {
+            "role": "assistant",
+            "content": "<think> The patient has a deep skin tear on her left shin that is painful, red, swollen, and draining profusely. She has a history of NHL with a recent auto SCT and is on maintenance Rituximab and IVIG infusions every 6 weeks. Her temperature is 99.2°F, and she does not have any fevers or chills. She denies shortness of breath, nausea, or vomiting. She reports incontinence and has chronic bowel problems. The patient appears to understand the severity of her symptoms but may not fully comprehend the implications of her medical history and the potential for infection. To provide a comprehensive understanding, I need to reveal more about her lab results, particularly her white blood cell count and other relevant markers that suggest infection.</think> \n\n<answer>Question: Could you please provide your most recent white blood cell count and any other relevant laboratory results that show signs of infection?</answer>"
+        },
+        {
+            "role": "user",
+            "content": "I have a deep skin tear on my left shin that is painful, red, swollen, and draining profusely. My temperature is 99.2°F, and I do not have any fevers or chills. I have not had any shortness of breath, nausea, or vomiting. My bowel movements are chronically problematic with episodes of incontinence."
+        },
+        {
+            "role": "assistant",
+            "content": "<think> The patient acknowledges the severity of her symptoms but may not fully understand the implications of her medical history and the potential for infection. She has a deep skin tear, a history of NHL, and is on immunosuppressive medications, which increase her risk of infection. Her temperature is 99.2°F, which could be a sign of infection, but she denies fevers or chills. To provide a comprehensive understanding, I need to reveal more about her lab results, particularly her white blood cell count and other relevant markers that suggest infection. This will help her understand why she needs to be observed and admitted for further evaluation and treatment.</think> \n\n<answer>Question: Could you please provide your most recent white blood cell count and any other relevant laboratory results that show signs of infection?</answer>"
+        },
+        {
+            "role": "user",
+            "content": "I have a deep skin tear on my left shin, and it's been bothering me for a few days. The wound is draining profusely and feels warm to the touch. I also have a fever of 99.2°F, but I don't feel chills or have any shortness of breath. My bowels are problematic, and I have incontinence issues. I also have a history of NHL, and I've been on immunosuppressive medications like Rituximab and IVIG. I'm not sure about my white blood cell count or other lab results, but I'm worried about the infection risk. Could you please provide more information about my lab results and why I need to be observed and admitted?"
+        },
+        {
+            "role": "assistant",
+            "content": "<think>The patient acknowledges the severity of her symptoms but may not fully understand the implications of her medical history and the potential for infection. She has a deep skin tear, a history of NHL, and is on immunosuppressive medications, which increase her risk of infection. Her temperature is 99.2°F, which could be a sign of infection, but she denies fevers or chills. To provide a comprehensive understanding, I need to reveal more about her lab results, particularly her white blood cell count and other relevant markers that suggest infection. This will help her understand why she needs to be observed and admitted for further evaluation and treatment. Once she understands the risks and the need for observation, she will be more likely to comply with the recommendation.</think> \n\n<answer>Recommendation: OBSERVATION ADMIT\\nDoctor: Your symptoms, including the deep skin tear, profuse drainage, and fever, raise concerns for a potential infection. Given your history of NHL and immunosuppressive medications, you are at a higher risk for complications. It is important to closely monitor your condition to ensure that any infection is treated promptly and effectively. Therefore, I recommend that you be observed in the hospital for further evaluation and treatment. This will allow us to manage your condition appropriately and provide the necessary care to prevent any potential complications.</answer>"
+        }
+    ],
+    "ability": "medical_consultation",
+    "reward_model": {
+        "ground_truth": "OBSERVATION ADMIT",
+        "style": "rule"
+    }
+}

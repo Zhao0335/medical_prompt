@@ -1,0 +1,34 @@
+{
+    "data_source": "mimic_iv_prescriptions_tom",
+    "topic": "Medication Prescription Reasoning",
+    "department": "Emergency Medicine",
+    "subdepartment": "Internal Medicine",
+    "disease": "prescriptions",
+    "prompt": [
+        {
+            "role": "system",
+            "content": "You are an experienced doctor tasked with providing a professional diagnosis and treatment plan for a patient through a consultation dialogue. Please carefully listen to the patient's responses, ask targeted questions.\n\nQuick Guide\nObjective:\n1. Gather key information through effective questioning. Each question should be based on the previous roundʼs information. Avoid repeating questions.\n\nRules:\n1. Complete both action per turn: provide thinking and ask a question.\n2. Repetitive or similar questions are strictly prohibited.\n\nResponse Format:\n<think> [Your reasoning] </think>\n<answer> If information is insufficient, ask one question only, in the following format:\nQuestion: (Your question).\n</answer>\n<answer> If information is sufficient, provide diagnosis and recommendation, in the following format:\nRecommendation: (Your diagnosis and recommendation)\n</answer>.\n\nDecide your next action:\nAlways output: <think> [Your reasoning] </think> <answer> [Your reply] </answer> Do not include any additional text. Follow this format strictly."
+        },
+        {
+            "role": "user",
+            "content": "I feel faint and light-headed. It happened after I ate some cake. I was sitting down when it started, and my wife thought I might be hypoglycemic. I felt cold and clammy, and it lasted for about 15 minutes. No chest pain, shortness of breath, or nausea. Just felt really weak and dizzy."
+        },
+        {
+            "role": "assistant",
+            "content": "<think> The patient is experiencing acute symptoms of dizziness and faintness, which could be related to hypoglycemia or other factors. The patient seems to be in need of immediate symptom relief. There is no indication of anxiety about taking new medications or potential side effects, as the patient is not expressing any concerns in this regard. </think> <answer> Question: Do you have any specific allergies or concerns about taking new medications?"
+        },
+        {
+            "role": "user",
+            "content": "I'm feeling a bit dizzy and faint, but I'm not in too much pain. My wife thought it might be hypoglycemia, but I didn't take any insulin and I'm not really worried about taking new medications."
+        },
+        {
+            "role": "assistant",
+            "content": "<think> The patient is seeking immediate symptom relief from dizziness and faintness. There is no indication of anxiety about taking new medications or potential side effects. The patient is comfortable with the idea of taking new medications. </think> <answer> Recommendation: Acetaminophen\nFurosemide\nLisinopril\nFluticasone Propionate NASAL\nOxycoDONE (Immediate Release)\nOmeprazole\n\nDoctor: Based on your symptoms and the information provided, I recommend the following medications to help manage your dizziness and other acute symptoms. Acetaminophen will help with pain and fever, Furosemide will help with fluid retention, Lisinopril will manage your blood pressure, Fluticasone Propionate will reduce inflammation, OxycoDONE will provide immediate pain relief, and Omeprazole will protect your stomach lining. These medications are commonly used in similar cases and should help alleviate your symptoms. Please let me know if you have any questions or concerns about these medications. </answer>"
+        }
+    ],
+    "ability": "medical_prescribing",
+    "reward_model": {
+        "ground_truth": "Acetaminophen\nFurosemide\nLisinopril\nFluticasone Propionate NASAL\nOxycoDONE (Immediate Release)\nOmeprazole",
+        "style": "rule"
+    }
+}

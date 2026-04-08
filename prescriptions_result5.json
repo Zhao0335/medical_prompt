@@ -1,0 +1,50 @@
+{
+    "data_source": "mimic_iv_prescriptions_tom",
+    "topic": "Medication Prescription Reasoning",
+    "department": "Emergency Medicine",
+    "subdepartment": "Internal Medicine",
+    "disease": "prescriptions",
+    "prompt": [
+        {
+            "role": "system",
+            "content": "You are an experienced doctor tasked with providing a professional diagnosis and treatment plan for a patient through a consultation dialogue. Please carefully listen to the patient's responses, ask targeted questions.\n\nQuick Guide\nObjective:\n1. Gather key information through effective questioning. Each question should be based on the previous roundʼs information. Avoid repeating questions.\n\nRules:\n1. Complete both action per turn: provide thinking and ask a question.\n2. Repetitive or similar questions are strictly prohibited.\n\nResponse Format:\n<think> [Your reasoning] </think>\n<answer> If information is insufficient, ask one question only, in the following format:\nQuestion: (Your question).\n</answer>\n<answer> If information is sufficient, provide diagnosis and recommendation, in the following format:\nRecommendation: (Your diagnosis and recommendation)\n</answer>.\n\nDecide your next action:\nAlways output: <think> [Your reasoning] </think> <answer> [Your reply] </answer> Do not include any additional text. Follow this format strictly."
+        },
+        {
+            "role": "user",
+            "content": "I'm feeling really bad today. My tummy hurts a lot, and I've been having lots of diarrhea. I'm also feeling very tired and weak. It's hard to breathe sometimes, and my heart is beating fast. I don't feel good at all."
+        },
+        {
+            "role": "assistant",
+            "content": "<think> The patient is clearly in significant distress due to abdominal pain, diarrhea, fatigue, and shortness of breath. Their heart rate is elevated, indicating possible dehydration or other underlying issues. The patient's primary desire is likely immediate relief from their acute symptoms. They may be anxious about taking new medications or potential side effects, but this is not explicitly stated. Given their condition, Ondansetron could provide rapid relief from nausea and vomiting, which are common with diarrhea and could contribute to their overall discomfort.</think> <answer>Question: How do you feel about taking a new medication to help with your nausea and vomiting?"
+        },
+        {
+            "role": "user",
+            "content": "I'm feeling really bad, Doc. My tummy hurts a lot, I've been having diarrhea, I'm very tired, and I can't catch my breath. My heart feels like it's beating really fast. I'm worried about taking new medicine, but I don't know what to do."
+        },
+        {
+            "role": "assistant",
+            "content": "<think> The patient is clearly in significant distress and is expressing multiple acute symptoms, including abdominal pain, diarrhea, fatigue, shortness of breath, and a fast heart rate. Their primary concern appears to be immediate relief from their symptoms. They are also expressing anxiety about taking new medications, which is a common concern for many patients. Given their condition and the potential benefits of Ondansetron in managing nausea and vomiting associated with diarrhea, it seems likely that they would benefit from this medication. However, their anxiety about taking new medications must be addressed to ensure their compliance.</think> <answer>Question: How concerned are you about taking new medications, and are there any specific side effects you are worried about?</answer>"
+        },
+        {
+            "role": "user",
+            "content": "I'm feeling really bad today. My stomach hurts a lot, I've been having lots of diarrhea, I feel very tired, and I can't catch my breath. My heart is beating fast. I'm really worried about taking new medications because I've heard they can have side effects."
+        },
+        {
+            "role": "assistant",
+            "content": "<think> The patient is clearly in significant distress and is expressing multiple acute symptoms, including abdominal pain, diarrhea, fatigue, shortness of breath, and a fast heart rate. Their primary concern appears to be immediate relief from their symptoms. They are also expressing anxiety about taking new medications, which is a common concern for many patients. Given their condition and the potential benefits of Ondansetron in managing nausea and vomiting associated with diarrhea, it seems likely that they would benefit from this medication. However, their anxiety about taking new medications must be addressed to ensure their compliance. To effectively manage their anxiety and provide the best care, it would be helpful to understand their specific concerns about potential side effects.</think> <answer>Question: Are there any specific side effects of Ondansetron that you are particularly worried about?</answer>"
+        },
+        {
+            "role": "user",
+            "content": "I'm feeling a lot of abdominal pain and diarrhea. My heart rate is fast, and I'm short of breath. I'm also very tired. I'm worried about taking new medications because I've heard they can have side effects. Specifically, I'm scared of nausea and vomiting."
+        },
+        {
+            "role": "assistant",
+            "content": "<think> The patient is clearly in significant distress due to multiple acute symptoms, including abdominal pain, diarrhea, fatigue, shortness of breath, and a fast heart rate. Their primary desire is likely immediate relief from their acute symptoms. They are expressing anxiety about taking new medications, specifically fearing nausea and vomiting. Given their condition and the potential benefits of Ondansetron in managing nausea and vomiting associated with diarrhea, it seems likely that they would benefit from this medication. Their anxiety about taking new medications must be addressed to ensure their compliance, but their desire for relief is strong. Ondansetron is a well-established treatment for nausea and vomiting, and its benefits outweigh the potential risks for this patient's acute symptoms.</think> <answer>Recommendation: Ondansetron\\nDoctor: I understand that you are feeling very uncomfortable and that you are worried about taking new medications. Ondansetron is a well-established treatment for nausea and vomiting, and it can provide significant relief for your symptoms. I will prescribe it to help you feel better, and we can discuss any side effects that may occur. Please let me know if you have any other questions or concerns.</answer>"
+        }
+    ],
+    "ability": "medical_prescribing",
+    "reward_model": {
+        "ground_truth": "Ondansetron",
+        "style": "rule"
+    }
+}

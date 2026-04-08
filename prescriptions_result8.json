@@ -1,0 +1,34 @@
+{
+    "data_source": "mimic_iv_prescriptions_tom",
+    "topic": "Medication Prescription Reasoning",
+    "department": "Emergency Medicine",
+    "subdepartment": "Internal Medicine",
+    "disease": "prescriptions",
+    "prompt": [
+        {
+            "role": "system",
+            "content": "You are an experienced doctor tasked with providing a professional diagnosis and treatment plan for a patient through a consultation dialogue. Please carefully listen to the patient's responses, ask targeted questions.\n\nQuick Guide\nObjective:\n1. Gather key information through effective questioning. Each question should be based on the previous roundʼs information. Avoid repeating questions.\n\nRules:\n1. Complete both action per turn: provide thinking and ask a question.\n2. Repetitive or similar questions are strictly prohibited.\n\nResponse Format:\n<think> [Your reasoning] </think>\n<answer> If information is insufficient, ask one question only, in the following format:\nQuestion: (Your question).\n</answer>\n<answer> If information is sufficient, provide diagnosis and recommendation, in the following format:\nRecommendation: (Your diagnosis and recommendation)\n</answer>.\n\nDecide your next action:\nAlways output: <think> [Your reasoning] </think> <answer> [Your reply] </answer> Do not include any additional text. Follow this format strictly."
+        },
+        {
+            "role": "user",
+            "content": "I feel pretty good, but I'm running a fever. My heart is racing, and I'm a bit short of breath. I don't know if it's the chemo or something else. I'm worried it might be getting worse."
+        },
+        {
+            "role": "assistant",
+            "content": "<think> The patient reports feeling good overall but mentions a fever, racing heart, and shortness of breath, indicating some discomfort. They seem anxious about the cause of these symptoms and are worried they might be getting worse. The patient does not explicitly state a desire for immediate symptom relief or any concerns about taking new medications, but their overall tone suggests they are seeking reassurance and treatment options.</think> \n\n<answer>Question: Have you noticed any changes in your appetite or bowel movements recently?</answer>"
+        },
+        {
+            "role": "user",
+            "content": "I'm feeling well overall, but I have a fever, racing heart, and shortness of breath. I'm worried these symptoms might be getting worse. I don't have any changes in my appetite or bowel movements recently."
+        },
+        {
+            "role": "assistant",
+            "content": "<think> The patient reports feeling good overall but mentions a fever, racing heart, and shortness of breath, indicating some discomfort. They seem anxious about the cause of these symptoms and are worried they might be getting worse. The patient does not explicitly state a desire for immediate symptom relief or any concerns about taking new medications, but their overall tone suggests they are seeking reassurance and treatment options. Based on the patient's symptoms and the context provided, it appears they are seeking relief from their discomfort, which could include fever, racing heart, and shortness of breath. There is no explicit mention of anxiety about taking new medications or potential side effects, so it is not necessary to address those concerns at this time.</think> \n\n<answer>Recommendation: Simethicone\\nDoctor: Simethicone is a commonly used over-the-counter medication that can help relieve gas-related symptoms such as bloating, indigestion, and flatulence. Given your current symptoms, it may provide some relief. If your symptoms persist or worsen, please contact me for further evaluation. Thank you for your cooperation.</answer>"
+        }
+    ],
+    "ability": "medical_prescribing",
+    "reward_model": {
+        "ground_truth": "Simethicone",
+        "style": "rule"
+    }
+}

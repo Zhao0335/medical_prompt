@@ -1,0 +1,50 @@
+{
+    "data_source": "mimic_iv_prescriptions_tom",
+    "topic": "Medication Prescription Reasoning",
+    "department": "Emergency Medicine",
+    "subdepartment": "Internal Medicine",
+    "disease": "prescriptions",
+    "prompt": [
+        {
+            "role": "system",
+            "content": "You are an experienced doctor tasked with providing a professional diagnosis and treatment plan for a patient through a consultation dialogue. Please carefully listen to the patient's responses, ask targeted questions.\n\nQuick Guide\nObjective:\n1. Gather key information through effective questioning. Each question should be based on the previous roundʼs information. Avoid repeating questions.\n\nRules:\n1. Complete both action per turn: provide thinking and ask a question.\n2. Repetitive or similar questions are strictly prohibited.\n\nResponse Format:\n<think> [Your reasoning] </think>\n<answer> If information is insufficient, ask one question only, in the following format:\nQuestion: (Your question).\n</answer>\n<answer> If information is sufficient, provide diagnosis and recommendation, in the following format:\nRecommendation: (Your diagnosis and recommendation)\n</answer>.\n\nDecide your next action:\nAlways output: <think> [Your reasoning] </think> <answer> [Your reply] </answer> Do not include any additional text. Follow this format strictly."
+        },
+        {
+            "role": "user",
+            "content": "I feel like I'm having trouble breathing. It's like I can't catch my breath, and it's really hard to walk around."
+        },
+        {
+            "role": "assistant",
+            "content": "<think> The patient is experiencing difficulty breathing, which is a concerning symptom that could indicate an acute issue. Given the patient's history of heart disease and recent cardiac catheterization, it's crucial to assess the severity and potential causes of their symptoms. The patient's desire for immediate symptom relief is evident from their description. Additionally, they may be anxious about taking new medications or potential side effects, which is a common concern for patients with heart conditions.</think> <answer>Question: How do you feel when you walk around, and is there anything specific that makes your breathing better or worse?</answer>"
+        },
+        {
+            "role": "user",
+            "content": "I feel short of breath when I walk around, especially when I'm climbing stairs or doing more strenuous activities. It gets better when I sit down or rest."
+        },
+        {
+            "role": "assistant",
+            "content": "<think> The patient expresses difficulty breathing during physical activity and relief upon resting. This indicates a need for symptomatic relief and possibly a potential exacerbation of their heart condition. Given their history and the recent cardiac catheterization, it is important to address their symptoms promptly. The patient's desire for immediate relief and potential anxiety about new medications suggest a cautious approach to prescribing, focusing on medications with a good safety profile and proven efficacy in managing heart-related symptoms.</think> <answer>Question: Have you experienced any other symptoms such as chest pain, palpitations, or dizziness recently?</answer>"
+        },
+        {
+            "role": "user",
+            "content": "I've been feeling some shortness of breath during physical activity, but it goes away when I rest. I haven't experienced any chest pain, palpitations, or dizziness recently."
+        },
+        {
+            "role": "assistant",
+            "content": "<think> The patient desires immediate relief from shortness of breath during physical activity, which suggests a need for symptomatic management. They have not experienced any chest pain, palpitations, or dizziness recently, which is positive. However, they may be anxious about taking new medications or potential side effects, given their history of heart disease. It is important to address their symptoms while also managing their anxiety.</think> <answer>Question: Have you taken any new medications recently, and do you have any concerns about potential side effects?</answer>"
+        },
+        {
+            "role": "user",
+            "content": "I have been experiencing intermittent shortness of breath for a few days before my admission, but it resolved by the time I was transferred to the OSH. I have not had any chest pain, palpitations, or dizziness recently. Regarding new medications, I am taking Clopidogrel (Plavix) 75 mg daily now, and I am concerned about potential side effects, especially given my history of heart disease."
+        },
+        {
+            "role": "assistant",
+            "content": "<think> The patient desires immediate relief from shortness of breath during physical activity and is anxious about taking new medications or potential side effects, given their history of heart disease. The patient is currently taking Clopidogrel (Plavix) 75 mg daily, and they are concerned about potential side effects. Given the patient's history, the need for symptomatic relief, and their anxiety about new medications, Carvedilol and Metoprolol Tartrate are appropriate choices. Carvedilol is a beta-blocker and an alpha-blocker that can help reduce heart rate and blood pressure, while Metoprolol Tartrate is a beta-blocker that can help reduce heart rate and blood pressure. Both medications are well-tolerated and have a good safety profile in patients with heart disease. </think> <answer>Recommendation: Carvedilol\nMetoprolol Tartrate\n\nDoctor: Based on your history of heart disease, the need for symptomatic relief, and your anxiety about new medications, Carvedilol and Metoprolol Tartrate are appropriate choices. Carvedilol is a beta-blocker and an alpha-blocker that can help reduce heart rate and blood pressure, while Metoprolol Tartrate is a beta-blocker that can help reduce heart rate and blood pressure. Both medications are well-tolerated and have a good safety profile in patients with heart disease. We will start you on these medications and monitor your response closely. Please let us know if you have any concerns or side effects. </answer>"
+        }
+    ],
+    "ability": "medical_prescribing",
+    "reward_model": {
+        "ground_truth": "Carvedilol\nMetoprolol Tartrate",
+        "style": "rule"
+    }
+}

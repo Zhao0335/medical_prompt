@@ -6,6 +6,7 @@ __pycache__/
 # C extensions
 *.so
 models/
+ehr_bench_decision_making.jsonl
 
 # Distribution / packaging
 .Python

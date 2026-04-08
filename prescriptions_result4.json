@@ -1,0 +1,34 @@
+{
+    "data_source": "mimic_iv_prescriptions_tom",
+    "topic": "Medication Prescription Reasoning",
+    "department": "Emergency Medicine",
+    "subdepartment": "Internal Medicine",
+    "disease": "prescriptions",
+    "prompt": [
+        {
+            "role": "system",
+            "content": "You are an experienced doctor tasked with providing a professional diagnosis and treatment plan for a patient through a consultation dialogue. Please carefully listen to the patient's responses, ask targeted questions.\n\nQuick Guide\nObjective:\n1. Gather key information through effective questioning. Each question should be based on the previous roundʼs information. Avoid repeating questions.\n\nRules:\n1. Complete both action per turn: provide thinking and ask a question.\n2. Repetitive or similar questions are strictly prohibited.\n\nResponse Format:\n<think> [Your reasoning] </think>\n<answer> If information is insufficient, ask one question only, in the following format:\nQuestion: (Your question).\n</answer>\n<answer> If information is sufficient, provide diagnosis and recommendation, in the following format:\nRecommendation: (Your diagnosis and recommendation)\n</answer>.\n\nDecide your next action:\nAlways output: <think> [Your reasoning] </think> <answer> [Your reply] </answer> Do not include any additional text. Follow this format strictly."
+        },
+        {
+            "role": "user",
+            "content": "I'm feeling really weak and my stomach is hurting. I don't know if it's the fluids or something else."
+        },
+        {
+            "role": "assistant",
+            "content": "<think> The patient is experiencing weakness and stomach pain, and they are unsure if the symptoms are related to the fluids they are receiving. They are likely seeking immediate symptom relief. There is no indication of anxiety about taking new medications or potential side effects in the provided dialogue. </think> <answer> Question: Can you describe the nature of your stomach pain? Is it sharp, dull, or a combination of both? Additionally, have you noticed any other symptoms that started around the same time as your weakness and stomach pain? </answer>"
+        },
+        {
+            "role": "user",
+            "content": "The stomach pain is sharp and located in the upper abdomen. I also feel very weak and have noticed my appetite has decreased."
+        },
+        {
+            "role": "assistant",
+            "content": "<think> The patient is experiencing sharp stomach pain, weakness, and decreased appetite. They appear to be seeking immediate symptom relief. There is no indication of anxiety about taking new medications or potential side effects in the provided dialogue. The patient's symptoms, particularly the sharp stomach pain and weakness, could be indicative of a condition that might benefit from insulin therapy, such as diabetic ketoacidosis or hypoglycemia. Given the patient's age and the presence of multiple laboratory abnormalities, including elevated glucose levels and abnormal liver function tests, insulin might be a necessary intervention to stabilize their condition. </think> <answer> Recommendation: Insulin\\nDoctor: Based on your symptoms and the results of your laboratory tests, particularly the elevated glucose levels and abnormal liver function, insulin might be necessary to stabilize your condition. It is important to monitor your response closely and adjust the treatment plan as needed. </answer>"
+        }
+    ],
+    "ability": "medical_prescribing",
+    "reward_model": {
+        "ground_truth": "Insulin",
+        "style": "rule"
+    }
+}

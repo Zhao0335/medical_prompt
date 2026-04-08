@@ -17,7 +17,10 @@ def main() -> None:
     mp = MedicalToMIncrementalGenerator()
     count: int = 1
     for data in datas:
-        result_file = Path(f"result{count}.json")
+        if data.get("task_info", {}).get("task", "diagnosis") != "prescriptions":
+            continue
+
+        result_file = Path(f"prescriptions_result{count}.json")
         with result_file.open("w", encoding="utf-8") as f:
             json.dump(mp.run(data, llm), f, ensure_ascii=False, indent=4)
         print(f"Done with line{count}!")
