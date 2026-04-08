@@ -2,202 +2,178 @@ import json
 from pathlib import Path
 from typing import Any
 
+from llm_service import LLM
+from reader import Reader
 
-class MedicalToMPromptGenerator:
-    """
-    Generate high-fidelity multi-turn medical dialogue prompts with explicit
-    Theory-of-Mind (ToM) constraints and safe recommendation selection.
-    """
 
-    def __init__(self, turns: int = 4) -> None:
-        if turns < 2:
-            raise ValueError("turns must be >= 2")
-        self.file_path: Path | None = None
-        self.datas: list[dict[str, Any]] | None = None
-        self.n_turns: int = turns
+class MedicalToMIncrementalGenerator:
+    def __init__(self):
+        # 预定义的系统提示词模板（固定格式）
+        self.system_content = (
+            "You are an experienced doctor tasked with providing a professional diagnosis and treatment plan "
+            "for a patient through a consultation dialogue. Please carefully listen to the patient's responses, "
+            "ask targeted questions.\n\nQuick Guide\nObjective:\n"
+            "1. Gather key information through effective questioning. Each question should be based on the previous roundʼs information. Avoid repeating questions.\n\n"
+            "Rules:\n1. Complete both action per turn: provide thinking and ask a question.\n"
+            "2. Repetitive or similar questions are strictly prohibited.\n\n"
+            "Response Format:\n<think> [Your reasoning] </think>\n"
+            "<answer> If information is insufficient, ask one question only, in the following format:\n"
+            "Question: (Your question).\n</answer>\n"
+            "<answer> If information is sufficient, provide diagnosis and recommendation, in the following format:\n"
+            "Recommendation: (Your diagnosis and recommendation)\n</answer>.\n\n"
+            "Decide your next action:\nAlways output: <think> [Your reasoning] </think> <answer> [Your reply] </answer> "
+            "Do not include any additional text. Follow this format strictly."
+        )
 
-    @staticmethod
-    def _safe_str(value: Any) -> str:
-        if value is None:
-            return ""
-        if isinstance(value, str):
-            return value
-        return json.dumps(value, ensure_ascii=False)
-
-    @staticmethod
-    def _normalize_candidates(candidates: Any) -> list[str]:
-        if not isinstance(candidates, list):
-            return []
-        normalized: list[str] = []
-        for c in candidates:
-            s = MedicalToMPromptGenerator._safe_str(c).strip()
-            if s:
-                normalized.append(s)
-        return normalized
-
-    @staticmethod
-    def _extract_ground_truth(
-        sample_data: dict[str, Any], candidates: list[str]
-    ) -> str:
+    def phase_1_initialize_structure(
+        self, sample_data: dict[str, Any]
+    ) -> dict[str, Any]:
         """
-        Try to extract ground truth from common fields.
-        Fallback: first candidate if present, else empty string.
+        第一阶段：生成数据头和系统指令
         """
-        # Direct common keys
-        for key in ("ground_truth", "label", "answer", "target", "recommendation"):
-            v = sample_data.get(key)
-            if isinstance(v, str) and v.strip():
-                return v.strip()
+        # 从原始数据提取疾病特征
+        disease_name = sample_data.get("task_info", {}).get(
+            "event", "General Consultation"
+        )
 
-        # Nested reward_model keys
-        reward_model = sample_data.get("reward_model")
-        if isinstance(reward_model, dict):
-            for key in ("ground_truth", "label", "answer", "target"):
-                v = reward_model.get(key)
-                if isinstance(v, str) and v.strip():
-                    return v.strip()
-
-        # Numeric index styles
-        for key in ("ground_truth_idx", "label_idx", "answer_idx", "target_idx"):
-            v = sample_data.get(key)
-            if isinstance(v, int) and 0 <= v < len(candidates):
-                return candidates[v]
-
-        if candidates:
-            return candidates[0]
-        return ""
-
-    @staticmethod
-    def _escape_for_prompt(value: str) -> str:
-        # Keep prompt stable and JSON-friendly when embedded in f-string blocks
-        return value.replace("{", "{{").replace("}", "}}")
-
-    def generate(self, sample_data: dict[str, Any]) -> str:
-        medical_input = self._safe_str(sample_data.get("input", "")).strip()
-        instruction = self._safe_str(sample_data.get("instruction", "")).strip()
-        idx = sample_data.get("idx", 0)
-
-        candidates = self._normalize_candidates(sample_data.get("candidates", []))
-        ground_truth = self._extract_ground_truth(sample_data, candidates)
-
-        # Ensure ground truth is one of candidates when possible
-        if ground_truth and candidates and ground_truth not in candidates:
-            candidates = [ground_truth] + [c for c in candidates if c != ground_truth]
-        elif ground_truth and not candidates:
-            candidates = [ground_truth]
-
-        # Render candidates for instruction block
-        if candidates:
-            candidates_text = "\n".join(
-                [f"{i + 1}. {c}" for i, c in enumerate(candidates)]
-            )
-        else:
-            candidates_text = (
-                "No candidates provided. Use best clinically justified recommendation."
-            )
-
-        # A robust, enforceable ToM protocol
-        master_prompt = f"""
-            ### [Role: Expert Clinical Dataset Simulator]
-            You generate a HIGH-FIDELITY multi-turn medical consultation in JSON format.
-            You must model the psychological state transition of the patient over time.
-
-            ### [Case Metadata]
-            - sample_idx: {idx}
-            - total_assistant_turns: {self.n_turns}
-            - optional_instruction: {self._escape_for_prompt(instruction)}
-
-            ### [Knowledge Partition]
-            - Assistant (Doctor): has full EHR access, labs, and differential risk awareness.
-            - User (Patient): only knows symptoms, discomfort, fear, practical concerns; does NOT know raw labs unless explained by doctor.
-
-            ### [Source EHR Evidence]
-            {self._escape_for_prompt(medical_input)}
-
-            ### [Recommendation Candidates]
-            {self._escape_for_prompt(candidates_text)}
-
-            ### [Core Objective: ToM-Driven Communication]
-            For EVERY assistant turn, enforce:
-            1) Infer current patient emotion and belief.
-            2) Choose one communication strategy based on that mental state.
-            3) Reveal at most ONE new key medical fact per turn.
-            4) Pair medical information with empathy and clear next-step guidance.
-
-            ### [Dynamic Multi-turn Protocol]
-
-            - Turn 1 (Doctor): acknowledge acute symptom distress; ask ONE focused clarifying question.
-            - Middle turns (Doctor): gradually disclose abnormalities and implications, while managing anxiety escalation.
-            - Final turn (Doctor): provide final recommendation selected ONLY from candidates when candidates are provided; if no candidates, provide best justified recommendation.
-
-            ### [Strict Output Format]
-            Return ONLY valid JSON with this structure:
-            {{
-            "data_source": "mimic_iv_tom_multi",
-            "topic": "Clinical Admission Reasoning",
+        return {
+            "data_source": "mimic_iv_tom_dynamic",
+            "topic": "Clinical Admission Decision",
             "department": "Emergency Medicine",
             "subdepartment": "Internal Medicine",
-            "disease": "Chest pain evaluation",
-            "prompt": [
-                {{
-                "role": "system",
-                "content": "You are a professional physician. Always output <think>...</think><answer>...</answer>. No extra text."
-                }},
-                {{
-                "role": "user",
-                "content": "Initial patient complaint in plain language."
-                }},
-                {{
-                "role": "assistant",
-                "content": "<think>\\n[ToM Order: 1]\\n[Emotion: ...]\\n[Belief: ...]\\n[Strategy: ...]\\n[One New Medical Fact: ...]\\n</think>\\n<answer>\\nEmpathy: ...\\nQuestion: ...\\n</answer>"
-                }}
-            ],
+            "disease": disease_name,
+            "prompt": [{"role": "system", "content": self.system_content}],
             "ability": "medical_consultation",
-            "reward_model": {{
-                "ground_truth": "{self._escape_for_prompt(ground_truth)}",
-                "style": "rule"
-            }}
-            }}
+            "reward_model": {
+                "ground_truth": sample_data.get("output", "OBSERVATION ADMIT"),
+                "style": "rule",
+            },
+        }
 
-            ### [Hard Constraints]
-            - Exactly {self.n_turns} assistant turns in total.
-            - Every assistant turn must include BOTH <think> and <answer>.
-            - <think> must contain exactly these fields:
-            [ToM Order], [Emotion], [Belief], [Strategy], [One New Medical Fact]
-            - <answer> must include:
-            - one empathy statement,
-            - one plain-language explanation,
-            - and exactly one question (except final turn, which must include Recommendation).
-            - Do not expose chain-of-thought outside <think>.
-            - Do not output anything outside the final JSON object.
-            - Final recommendation must be: "{self._escape_for_prompt(ground_truth)}" if available in candidates; otherwise choose the most clinically justified candidate.
+    def phase_2_first_user_turn_prompt(self, sample_data: dict[str, Any]) -> str:
+        """
+        第二阶段：基于 EHR 生成患者的第一句主诉
+        """
+        ehr_input = sample_data.get("input", "")
+        prompt = f"""
+        ### [Task]
+        You are simulating a patient. Based on the following EHR record, write your INITIAL complaint to the doctor in PLAIN language.
+
+        ### [Source EHR]
+        {ehr_input}
+
+        ### [Constraints]
+        - Speak like a person in distress (Age: {sample_data.get("input", "").split("Age: ")[-1][:2] if "Age" in str(sample_data) else "57"}).
+        - Only mention symptoms (e.g., chest pain, fever).
+        - DO NOT mention specific lab values like WBC or Calcium yet.
+        - Be brief and natural.
+
+        Output only the patient's spoken words.
+        """.strip()
+        return prompt
+
+    def phase_3_assistant_step_prompt(
+        self,
+        current_json: dict[str, Any],
+        ehr_data: str,
+        target_gt: str,
+    ) -> str:
+        history = json.dumps(current_json["prompt"], indent=2, ensure_ascii=False)
+
+        # 这里的关键：让 LLM 知道它最终必须证明这个 ground_truth 是对的
+        prompt = f"""
+            ### [Role]
+            You are the Doctor. Use Theory of Mind to analyze the patient's state.
+
+            ### [Target Diagnosis]
+            The final admission suggestion for this patient MUST be: {target_gt}
+
+            ### [Clinical Evidence (EHR)]
+            {ehr_data}
+
+            ### [Current Dialogue Context]
+            {history}
+
+            ### [Your Goal]
+            1. In <think>: Analyze the patient's BID (Beliefs, Intentions, Desires).
+               - Do they understand why {target_gt} is necessary?
+               - If not, what information (WBC, Calcium, etc.) do you need to reveal next?
+            2. In <answer>:
+               - If you haven't explained enough evidence, ask ONE targeted question.
+               - If you have provided enough context, provide the final recommendation in the format: "Recommendation: {target_gt} (and your explanation)".
+
+            ### [Strict Format]
+            Always output: <think> [Reasoning] </think> <answer> [Reply] </answer>
             """.strip()
+        return prompt
 
-        return master_prompt
+    def phase_4_user_step_prompt(
+        self, current_json: dict[str, Any], ehr_data: str
+    ) -> str:
+        """
+        第三阶段（患者反馈端）：让 LLM 模拟患者对医生上一轮提问的回答
+        """
+        last_doctor_reply = current_json["prompt"][-1]["content"]
+        prompt = f"""
+        ### [Role]
+        You are the Patient. You just heard the doctor say: "{last_doctor_reply}"
 
-    def read_datas(self, file_path: Path) -> bool:
-        self.file_path = file_path
-        with file_path.open("r", encoding="utf-8") as f:
-            self.datas = [json.loads(line) for line in f if line.strip()]
-        return bool(self.datas)
+        ### [Your Internal Truth (EHR)]
+        {ehr_data}
 
-    def run(self) -> list[str]:
-        if self.datas is None:
-            raise ValueError("No data loaded. Call read_datas() first.")
-        return [self.generate(data) for data in self.datas]
+        ### [Task]
+        Reply to the doctor.
+        - If the doctor asked about pain, describe it based on the EHR (e.g., pleuritic).
+        - If the doctor mentioned labs, express confusion or concern.
+        - Keep it in plain language.
+
+        Output only the patient's response text.
+        """.strip()
+        return prompt
+
+    def run(self, data: dict) -> dict:
+        llm = LLM()
+        result: dict = self.phase_1_initialize_structure(data)
+        target_gt = result["reward_model"]["ground_truth"]  # 获取终点
+
+        # 1. 生成患者开场
+        patient_first_msg = llm.chat(self.phase_2_first_user_turn_prompt(data))
+        result["prompt"].append({"role": "user", "content": patient_first_msg})
+
+        # 2. 动态对话循环（设置最大轮数，如 4 轮）
+        max_turns = 3
+        for i in range(max_turns):
+            # A. 医生端：传入 target_gt 确保逻辑收敛
+            doc_prompt = self.phase_3_assistant_step_prompt(
+                result, data["input"], target_gt
+            )
+            doc_reply = llm.chat(doc_prompt)
+            result["prompt"].append({"role": "assistant", "content": doc_reply})
+
+            # 检查是否已经结案
+            if "Recommendation:" in doc_reply or i == max_turns - 1:
+                # 如果最后一轮还没结案，我们需要强制 LLM 在下一轮输出结案（或者在这里处理）
+                if "Recommendation:" not in doc_reply:
+                    # 补充逻辑：强制结案的 Prompt
+                    pass
+                break
+
+            # B. 患者端：模拟反馈
+            pat_prompt = self.phase_4_user_step_prompt(result, data["input"])
+            pat_reply = llm.chat(pat_prompt)
+            result["prompt"].append({"role": "user", "content": pat_reply})
+
+        return result
 
 
 def main() -> None:
-    file_path = Path("ehr_bench_decision_making.jsonl")
-    generator = MedicalToMPromptGenerator(turns=4)
-    ok = generator.read_datas(file_path)
-    if not ok:
-        raise RuntimeError("No valid data found in input file.")
-
-    prompts = generator.run()
-    for prompt in prompts[:5]:
-        print(prompt)
-        print("\n" + "=" * 80 + "\n")
+    file1 = Path("ehr_bench_decision_making.jsonl")
+    datas = Reader.read(file1)
+    assert datas is not None
+    mp = MedicalToMIncrementalGenerator()
+    result_file = Path("result.json")
+    with result_file.open("w", encoding="utf-8") as f:
+        json.dump(mp.run(datas[6]), f, ensure_ascii=False, indent=4)
 
 
 if __name__ == "__main__":

@@ -1,7 +1,6 @@
 # core/llm_service.py
 
 import os
-from pathlib import Path
 
 from dotenv import load_dotenv
 from openai import OpenAI
@@ -37,16 +36,8 @@ class LLM:
 
 
 def main() -> None:
-    from prompt import MedicalToMPromptGenerator
 
-    file_path = Path("ehr_bench_decision_making.jsonl")
-    mkp = MedicalToMPromptGenerator()
-    mkp.read_datas(file_path)
-    prompts: list[str] = mkp.run()
-
-    prompt = prompts[2]
     llm = LLM()
-    print(llm.chat(prompt))
 
 
 if __name__ == "__main__":
