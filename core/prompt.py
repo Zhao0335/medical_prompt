@@ -1,9 +1,7 @@
 import json
-from pathlib import Path
 from typing import Any
 
-from reader import Reader
-from vllm_service import LLM
+from core.vllm_service import LLM
 
 
 class MedicalToMIncrementalGenerator:
@@ -131,9 +129,7 @@ class MedicalToMIncrementalGenerator:
         """.strip()
         return prompt
 
-    def run(self, data: dict) -> dict:
-        llm = LLM("models/base/Qwen2.5-7B-Coder-Instruct")
-        llm.load_model()
+    def run(self, data: dict, llm: LLM) -> dict:
         result: dict = self.phase_1_initialize_structure(data)
         target_gt = result["reward_model"]["ground_truth"]  # 获取终点
 
@@ -165,18 +161,3 @@ class MedicalToMIncrementalGenerator:
             result["prompt"].append({"role": "user", "content": pat_reply})
 
         return result
-
-
-def main() -> None:
-    file1 = Path("ehr_bench_decision_making.jsonl")
-    datas = Reader.read(file1)
-    assert datas is not None
-    mp = MedicalToMIncrementalGenerator()
-    result_file = Path("result.json")
-    with result_file.open("w", encoding="utf-8") as f:
-        json.dump(mp.run(datas[6]), f, ensure_ascii=False, indent=4)
-    print("Done!")
-
-
-if __name__ == "__main__":
-    main()

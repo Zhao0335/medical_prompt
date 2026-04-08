@@ -1,4 +1,3 @@
-import json
 from pathlib import Path
 
 import torch
@@ -44,6 +43,7 @@ class LLM:
                 model=self.model_path,
                 gpu_memory_utilization=self.gpu_memory_utilization,
                 download_dir=str(models_dir),
+                trust_remote_code=True,
             )
 
             # 加载分词器
