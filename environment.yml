@@ -1,0 +1,30 @@
+name: mp
+channels:
+    - pytorch
+    - nvidia
+    - conda-forge
+    - defaults
+dependencies:
+    - python=3.10
+    - pip
+    - pytorch>=2.4.0 # PyTorch 2.4+ 正式支持 CUDA 12.4
+    - torchvision
+    - torchaudio
+    - pytorch-cuda=12.4 # 匹配你的本地 CUDA 版本
+    - pip:
+          - vllm>=0.5.0 # 较新版本的 vLLM 对 CUDA 12.4 支持更好
+          - transformers>=4.40.0
+          - datasets
+          - peft
+          - accelerate
+          - bitsandbytes>=0.43.0 # 必须用新版以支持高版本 CUDA
+          - sentencepiece
+          - protobuf
+          - scipy
+          - pandas
+          - scikit-learn
+          - tqdm
+          - rouge_chinese
+          - jieba
+          - nltk
+      #- flash-attn --no-build-isolation
