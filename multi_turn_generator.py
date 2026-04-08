@@ -42,62 +42,74 @@ class MultiTurnGenerator:
         if not text.strip():
             raise ValueError("Empty response from LLM")
 
-        raw_json = self._extract_raw_json(text)
-        if raw_json is None:
-            print(f"  [DEBUG] No JSON-like structure found. Preview:\n    {text[:300]}...")
-            raise ValueError("Failed to parse JSON from LLM response")
+        strategies = [
+            ("array", self._extract_first_array),
+            ("object", self._extract_first_object),
+            ("direct", self._direct_parse),
+            ("repair", self._extract_with_repair),
+        ]
+        for name, strategy in strategies:
+            result = strategy(text)
+            if result is not None:
+                return result
 
-        for candidate in self._generate_parse_candidates(raw_json):
-            try:
-                return json.loads(candidate)
-            except json.JSONDecodeError:
-                continue
-
-        print(f"  [DEBUG] All repair attempts failed. Raw JSON preview:\n    {raw_json[:500]}...")
+        print(f"  [DEBUG] Could not parse JSON. Text preview:\n    {text[:300]}...")
         raise ValueError("Failed to parse JSON from LLM response")
 
     @staticmethod
     def _preprocess_response(response: str) -> str:
         text = response.strip()
-        text = re.sub(r"^```json\s*", "", text)
+        text = re.sub(r"```json\s*", "", text)
         text = re.sub(r"```\s*$", "", text)
-        return text.strip()
+        text = text.strip()
+        return text
+
+    def _extract_first_array(self, text: str) -> Any:
+        start = text.find("[")
+        if start == -1:
+            return None
+        end = self._find_matching_bracket(text, start, "[", "]")
+        if end == -1:
+            return None
+        try:
+            return json.loads(text[start : end + 1])
+        except json.JSONDecodeError:
+            return None
+
+    def _extract_first_object(self, text: str) -> Any:
+        start = text.find("{")
+        if start == -1:
+            return None
+        end = self._find_matching_bracket(text, start, "{", "}")
+        if end == -1:
+            return None
+        try:
+            return json.loads(text[start : end + 1])
+        except json.JSONDecodeError:
+            return None
 
     @staticmethod
-    def _extract_raw_json(text: str) -> str | None:
-        start_chars = ["[", "{"]
-        for sc in start_chars:
-            idx = text.find(sc)
-            if idx == -1:
-                continue
-            end = MultiTurnGenerator._find_bracket_end(text, idx, sc)
-            if end != -1:
-                return text[idx : end + 1]
-        return None
-
-    @staticmethod
-    def _find_bracket_end(text: str, start: int, open_ch: str) -> int:
-        close_ch = "]" if open_ch == "[" else "}"
+    def _find_matching_bracket(text: str, start: int, open_ch: str, close_ch: str) -> int:
         depth = 0
-        in_str = False
+        in_string = False
         i = start
         while i < len(text):
-            c = text[i]
-            if in_str:
-                if c == "\\":
+            ch = text[i]
+            if in_string:
+                if ch == "\\" and i + 1 < len(text):
                     i += 2
                     continue
-                if c == '"':
-                    in_str = False
+                if ch == '"':
+                    in_string = False
                 i += 1
                 continue
-            if c == '"':
-                in_str = True
+            if ch == '"':
+                in_string = True
                 i += 1
                 continue
-            if c == open_ch:
+            if ch == open_ch:
                 depth += 1
-            elif c == close_ch:
+            elif ch == close_ch:
                 depth -= 1
                 if depth == 0:
                     return i
@@ -105,68 +117,80 @@ class MultiTurnGenerator:
         return -1
 
     @staticmethod
-    def _generate_parse_candidates(raw: str) -> list[str]:
-        candidates = [raw]
-        candidates.append(MultiTurnGenerator._fix_control_chars(raw))
-        candidates.append(MultiTurnGenerator._fix_trailing_commas(raw))
-        fixed_both = MultiTurnGenerator._fix_trailing_commas(MultiTurnGenerator._fix_control_chars(raw))
-        candidates.append(fixed_both)
+    def _direct_parse(text: str) -> Any:
+        try:
+            return json.loads(text)
+        except json.JSONDecodeError:
+            return None
 
-        seen = set()
-        unique = []
-        for c in candidates:
-            if c not in seen:
-                seen.add(c)
-                unique.append(c)
-
-        for length in range(len(raw), max(len(raw) - 200, 10), -1):
-            unique.append(raw[:length])
-
-        return unique
+    def _extract_with_repair(self, text: str) -> Any:
+        start = text.find("[")
+        if start != -1:
+            end = self._find_matching_bracket(text, start, "[", "]")
+            if end != -1:
+                repaired = self._repair_json_string(text[start : end + 1])
+                try:
+                    return json.loads(repaired)
+                except json.JSONDecodeError:
+                    pass
+        start = text.find("{")
+        if start != -1:
+            end = self._find_matching_bracket(text, start, "{", "}")
+            if end != -1:
+                repaired = self._repair_json_string(text[start : end + 1])
+                try:
+                    return json.loads(repaired)
+                except json.JSONDecodeError:
+                    pass
+        return None
 
     @staticmethod
-    def _fix_control_chars(s: str) -> str:
-        out = []
-        in_str = False
+    def _repair_json_string(s: str) -> str:
+        result = []
         i = 0
+        in_string = False
         while i < len(s):
             ch = s[i]
-            if in_str:
+            if in_string:
                 if ch == "\\" and i + 1 < len(s):
-                    out.append(ch)
-                    out.append(s[i + 1])
-                    i += 2
-                    continue
+                    next_ch = s[i + 1]
+                    if next_ch in '"\\nrtbf/':
+                        result.append(ch)
+                        result.append(next_ch)
+                        i += 2
+                        continue
+                    elif next_ch == "n":
+                        result.append(ch)
+                        result.append(next_ch)
+                        i += 2
+                        continue
+                    else:
+                        result.append(ch)
+                        result.append(next_ch)
+                        i += 2
+                        continue
                 if ch == '"':
-                    in_str = False
+                    in_string = False
                 elif ch == "\n":
-                    out.append("\\n")
+                    result.append("\\n")
                     i += 1
                     continue
                 elif ch == "\r":
-                    out.append("\\r")
+                    result.append("\\r")
                     i += 1
                     continue
                 elif ch == "\t":
-                    out.append("\\t")
+                    result.append("\\t")
                     i += 1
                     continue
-                elif ord(ch) < 32 and ch not in ("\n", "\r", "\t"):
-                    i += 1
-                    continue
-                out.append(ch)
+                result.append(ch)
                 i += 1
             else:
                 if ch == '"':
-                    in_str = True
-                out.append(ch)
+                    in_string = True
+                result.append(ch)
                 i += 1
-        return "".join(out)
-
-    @staticmethod
-    def _fix_trailing_commas(s: str) -> str:
-        s = re.sub(r",\s*([}\]])", r"\1", s)
-        return s
+        return "".join(result)
 
     def generate_single_sample(self, sample_data: dict[str, Any]) -> dict[str, Any]:
         medical_input = MedicalToMPromptGenerator._safe_str(sample_data.get("input", ""))
