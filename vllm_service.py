@@ -13,7 +13,7 @@ class LLM:
         _temperature: float = 0.7,
         _top_p: float = 0.8,
         _max_tokens: int = 512,
-        _gpu_memory_utilization: float = 0.65,
+        _gpu_memory_utilization: float = 0.9,
     ) -> None:
         """
         初始化 LLM 配置
@@ -81,19 +81,19 @@ class LLM:
     def get_model_status(self) -> bool:
         return self.llm is not None
 
-    def get_response(self, text: str, filename: str) -> str | None:
+    def chat(self, text: str) -> str:
         """
         用来产出对话
 
         Args:
             text: 输入文本
-            filename: 文件名
+
         Returns:
             answer_text: llm回复
         """
         if self.tokenizer is None or self.llm is None:
             print("模型未启动")
-            return
+            return ""
 
         assert self.tokenizer is not None
         assert self.llm is not None
@@ -113,13 +113,6 @@ class LLM:
 
         # 提取回答中的文字
         answer_text: str = str(response[0].outputs[0].text)
-
-        save_dir = Path.cwd() / "json" / "output"
-        save_dir.mkdir(parents=True, exist_ok=True)
-        full_path = save_dir / f"{filename}.json"
-        with full_path.open("w", encoding="utf-8") as f:
-            json.dump(answer_text, f, ensure_ascii=False, indent=4)
-        print(f"LLM输出已保存至{full_path}")
         return str(answer_text)
 
     def set_sampling_params(
