@@ -37,19 +37,85 @@ class MultiTurnGenerator:
         )
         return str(completion.choices[0].message.content)
 
-    def _extract_json_from_response(self, response: str) -> dict[str, Any] | list[Any]:
+    def _extract_json_from_response(self, response: str) -> Any:
+        text = response.strip()
+        if not text:
+            raise ValueError("Empty response from LLM")
+
+        for attempt in ["_extract_first_object", "_extract_first_array", "_direct_parse"]:
+            result = getattr(self, attempt)(text)
+            if result is not None:
+                return result
+
+        raise ValueError("Failed to parse JSON from LLM response")
+
+    def _extract_first_object(self, text: str) -> Any:
+        start = text.find("{")
+        if start == -1:
+            return None
+        depth = 0
+        in_string = False
+        escape_next = False
+        for i in range(start, len(text)):
+            ch = text[i]
+            if escape_next:
+                escape_next = False
+                continue
+            if ch == "\\":
+                escape_next = True
+                continue
+            if ch == '"' and not escape_next:
+                in_string = not in_string
+                continue
+            if in_string:
+                continue
+            if ch == "{":
+                depth += 1
+            elif ch == "}":
+                depth -= 1
+                if depth == 0:
+                    try:
+                        return json.loads(text[start : i + 1])
+                    except json.JSONDecodeError:
+                        return None
+        return None
+
+    def _extract_first_array(self, text: str) -> Any:
+        start = text.find("[")
+        if start == -1:
+            return None
+        depth = 0
+        in_string = False
+        escape_next = False
+        for i in range(start, len(text)):
+            ch = text[i]
+            if escape_next:
+                escape_next = False
+                continue
+            if ch == "\\":
+                escape_next = True
+                continue
+            if ch == '"' and not escape_next:
+                in_string = not in_string
+                continue
+            if in_string:
+                continue
+            if ch == "[":
+                depth += 1
+            elif ch == "]":
+                depth -= 1
+                if depth == 0:
+                    try:
+                        return json.loads(text[start : i + 1])
+                    except json.JSONDecodeError:
+                        return None
+        return None
+
+    def _direct_parse(self, text: str) -> Any:
         try:
-            json_match = re.search(r"\{[\s\S]*\}", response)
-            if json_match:
-                return json.loads(json_match.group())
-            array_match = re.search(r"\[[\s\S]*\]", response)
-            if array_match:
-                return json.loads(array_match.group())
-            return json.loads(response.strip())
-        except json.JSONDecodeError as e:
-            print(f"JSON parsing error: {e}")
-            print(f"Raw response: {response[:500]}...")
-            raise ValueError("Failed to parse JSON from LLM response")
+            return json.loads(text)
+        except json.JSONDecodeError:
+            return None
 
     def generate_single_sample(self, sample_data: dict[str, Any]) -> dict[str, Any]:
         medical_input = MedicalToMPromptGenerator._safe_str(sample_data.get("input", ""))
