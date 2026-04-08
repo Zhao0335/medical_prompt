@@ -162,6 +162,7 @@ def main() -> None:
     generator = MultiTurnGenerator(
         turns=4,
         model="qwen-plus",
+        api_key=os.getenv("DASHSCOPE_API_KEY"),
     )
 
     results = generator.run(
