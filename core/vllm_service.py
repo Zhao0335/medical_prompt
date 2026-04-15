@@ -32,7 +32,7 @@ class LLM:
         新增接口：启动配置的 LLM 模型
         """
         # 找到模型的存储路径
-        project_root = Path(__file__).resolve().parent.parent
+        project_root = Path(__file__).resolve().parent.parent.parent
         models_dir = project_root / "models"
 
         if self.llm is None:
@@ -44,6 +44,7 @@ class LLM:
                 gpu_memory_utilization=self.gpu_memory_utilization,
                 download_dir=str(models_dir),
                 trust_remote_code=True,
+                tensor_parallel_size=2,
             )
 
             # 加载分词器

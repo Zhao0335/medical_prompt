@@ -9,7 +9,7 @@ from core.vllm_service import LLM
 
 
 def main() -> None:
-    llm = LLM("models/base/Qwen2.5-7B-Coder-Instruct")
+    llm = LLM("model")
     llm.load_model()
     file = Path("ehr_bench_decision_making.jsonl")
     datas = Reader.read(file)
