@@ -9,9 +9,9 @@ class LLM:
     def __init__(
         self,
         _modelpath: str,
-        _temperature: float = 0.7,
+        _temperature: float = 0.8,
         _top_p: float = 0.8,
-        _max_tokens: int = 512,
+        _max_tokens: int = 4096,
         _gpu_memory_utilization: float = 0.9,
     ) -> None:
         """
@@ -32,23 +32,26 @@ class LLM:
         新增接口：启动配置的 LLM 模型
         """
         # 找到模型的存储路径
-        project_root = Path(__file__).resolve().parent.parent.parent
-        models_dir = project_root / "models"
+        import os
+        home_dir = os.path.expanduser("~")
+        models_dir = os.path.join(home_dir, "models")
+        full_model_path = os.path.join(models_dir, self.model_path)
 
         if self.llm is None:
-            print(f"正在加载模型：{self.model_path}")
+            print(f"正在加载模型：{full_model_path}")
 
             # 使用 vLLM 加载模型
             self.llm = vllm.LLM(
-                model=self.model_path,
-                gpu_memory_utilization=self.gpu_memory_utilization,
-                download_dir=str(models_dir),
+                model=full_model_path,
+                gpu_memory_utilization=0.9,  # 增加内存使用率以容纳模型和KV缓存
+                download_dir=models_dir,
                 trust_remote_code=True,
-                tensor_parallel_size=2,
+                tensor_parallel_size=8,  # 使用8个GPU以获得更多内存
+                max_model_len=40960,  # 恢复最大序列长度
             )
 
             # 加载分词器
-            self.tokenizer = AutoTokenizer.from_pretrained(self.model_path)
+            self.tokenizer = AutoTokenizer.from_pretrained(full_model_path, local_files_only=True)
 
             # 模型参数设置：选词方式
             self.sampling_params = vllm.SamplingParams(
@@ -108,6 +111,9 @@ class LLM:
         prompt_text = self.tokenizer.apply_chat_template(
             messages, tokenize=False, add_generation_prompt=True
         )
+        
+        # 记录prompt到文件
+        self._log_prompt(prompt_text)
 
         # 生成回答
         response = self.llm.generate([prompt_text], self.sampling_params)
@@ -115,6 +121,27 @@ class LLM:
         # 提取回答中的文字
         answer_text: str = str(response[0].outputs[0].text)
         return str(answer_text)
+    
+    def _log_prompt(self, prompt: str) -> None:
+        """
+        记录每次发送给模型的prompt到文件
+        """
+        import datetime
+        import os
+        
+        # 创建logs目录（如果不存在）
+        logs_dir = os.path.join(os.path.dirname(__file__), "..", "logs")
+        os.makedirs(logs_dir, exist_ok=True)
+        
+        # 生成日志文件名
+        timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S_%f")
+        log_file = os.path.join(logs_dir, f"prompt_{timestamp}.txt")
+        
+        # 写入prompt
+        with open(log_file, "w", encoding="utf-8") as f:
+            f.write(prompt)
+        
+        print(f"Prompt logged to: {log_file}")
 
     def set_sampling_params(
         self, _temperature: float, _top_p: float, _max_tokens: int

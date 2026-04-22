@@ -9,7 +9,7 @@ from core.vllm_service import LLM
 
 
 def main() -> None:
-    llm = LLM("model")
+    llm = LLM("Qwen3-32B-Instruct")  # 使用用户主目录下models文件夹中的QwQ-32B模型
     llm.load_model()
     file = Path("ehr_bench_decision_making.jsonl")
     datas = Reader.read(file)
